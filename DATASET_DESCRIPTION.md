@@ -2,19 +2,19 @@
 
 ## Overview
 
-This dataset contains 949 mel-spectrogram images of 60-second underwater recordings made during logged fish choruses by hydrophones at four sites in Channel Islands and Monterey Bay National Marine Sanctuaries, from 33 deployments recorded between March 2019 and July 2024. Each recording comes with a ranking of six fixed candidate listening bands, from the band in which the chorus period stands out most above the site's chorus-free sound level to the band in which it stands out least.
+This dataset contains 952 mel-spectrogram images of 60-second underwater recordings made during logged fish choruses by hydrophones at four sites in Channel Islands and Monterey Bay National Marine Sanctuaries, from 33 deployments recorded between March 2019 and July 2024. Each recording comes with a ranking of six fixed candidate listening bands, from the band in which the chorus period stands out most above its deployment's chorus-free sound level to the band in which it stands out least.
 
 The recordings come from the Sanctuary Soundscape Monitoring Project (SanctSound) and its continuation by the NOAA Office of National Marine Sanctuaries, and the chorus logs from the NOAA Office of National Marine Sanctuaries. All are U.S. Government works in the public domain. This release contains no raw audio, no timestamps, no locations and none of the chorus-free recordings used to compute the rankings; sites and deployments are identified only by opaque keys.
 
 ## Release At A Glance
 
 - Raw files: 9
-- Recordings (cases): 949, each at least half inside a logged chorus
+- Recordings (cases): 952, each at least half inside a logged chorus
 - Sites: 4 (two in Channel Islands, two in Monterey Bay); deployments: 33
 - Recording length: 60 seconds; spectrogram shape (240, 64)
 - Candidate bands: 6, fixed for every recording
-- Best band across the release: band 0 in 426 recordings, band 1 in 208, band 2 in 17, band 3 in 10, band 4 in 39, band 5 in 249
-- Prepared split: 23 deployments / 636 training recordings, 10 other deployments / 313 test recordings
+- Best band across the release: band 0 in 445 recordings, band 1 in 220, band 2 in 13, band 3 in 14, band 4 in 40, band 5 in 220
+- Prepared split: 19 deployments / 525 training recordings, 14 other deployments / 427 test recordings
 
 ## Raw File Structure
 
@@ -67,7 +67,7 @@ Band k covers mel columns 8k to 8k + 15, so neighbouring bands overlap by half:
 
 - Deployments with archived audio and a complete fish chorus log are used (sites CI01, CI04, MB01, MB02). Within each, 60-second recordings are drawn at keyed random times, at least 30 minutes apart, avoiding 10 minutes around every recording released in the Sanctuary Fish Chorus Masks dataset and 12 hours around log rows with a missing time.
 - Chorus recordings lie at least half inside a logged chorus of any of the five logged types (bocaccio, plainfin midshipman, white seabass, UF440, UF310). Chorus-free recordings, with no logged chorus within 30 minutes, are drawn from the same deployments and are not released.
-- For each chorus recording and each band, the excess is the median over the recording's logged-chorus rows of the band's mean log10 power (before the keyed gain) minus the site's chorus-free level in that band (the median over all chorus-free recordings of the site). The ranking orders bands by decreasing excess. Recordings whose two best bands differ by less than 0.02 log10 units are dropped.
+- For each chorus recording and each band, the excess is the median over the recording's logged-chorus rows of the band's mean log10 power (before the keyed gain) minus the deployment's chorus-free level in that band (the median over that deployment's chorus-free recordings). The ranking orders bands by decreasing excess. Recordings whose two best bands differ by less than 0.02 log10 units are dropped.
 - All draws and identifiers derive by HMAC-SHA256 from a secret held by the creator; the secret, recording times, file names and chorus-free recordings are not released.
 
 ## Label Source
@@ -78,20 +78,20 @@ The chorus logs are the NOAA Office of National Marine Sanctuaries fish chorus l
 
 `prepare.py` writes a public directory and a private answer directory.
 
-- public `train.csv` (636 rows) and `test.csv` (313 rows): `case_id`, `site_id`, `deployment_id`.
-- public `train_labels.csv` (636 rows): `case_id`, `ranking`, all six bands best first.
-- public `sample_submission.csv` (313 rows): `case_id`, `ranking` from a band-contrast rule.
+- public `train.csv` (525 rows) and `test.csv` (427 rows): `case_id`, `site_id`, `deployment_id`.
+- public `train_labels.csv` (525 rows): `case_id`, `ranking`, all six bands best first.
+- public `sample_submission.csv` (427 rows): `case_id`, `ranking` from a band-contrast rule.
 - public `spectrograms.npz`: the arrays of every training and test recording.
 - public `LICENSE`.
 - public `data_manifest.json`: array shape, decoding, candidate bands in mel columns and Hz, split counts and the independent unit.
-- private `answers.csv` (313 rows): `case_id`, `ranking` for the test recordings. It has the same columns as `sample_submission.csv`.
+- private `answers.csv` (427 rows): `case_id`, `ranking` for the test recordings. It has the same columns as `sample_submission.csv`.
 
 The test split is the deployments listed in `test_deployments.txt`. The preparation self-check verifies that deployments do not cross the split, that ids agree across files, that every ranking is a permutation of the six bands and that no public column is constant.
 
 ## Known Limitations
 
 - **Four sites.** All recordings come from two Channel Islands and two Monterey Bay sites, and every site appears in both splits; transfer is across deployments, seasons and years.
-- **Excess, not chorus alone.** The excess measures the whole sound during a logged chorus against the site's chorus-free level, so wind, rain, vessels or snapping shrimp that coincide with a chorus also move it.
+- **Excess, not chorus alone.** The excess measures the whole sound during a logged chorus against the deployment's chorus-free level, so wind, rain, vessels or snapping shrimp that coincide with a chorus also move it.
 - **Uneven best bands.** Bands 2 and 3 are rarely best; the scoring corrects for the most frequent bands.
 - **Chorus-level logs.** Logs mark sustained choruses, not individual calls.
 
